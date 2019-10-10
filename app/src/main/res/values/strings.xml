@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">WazzApp</string>
+    <string name="login_title">WazzApp: Login</string>
+    <string name="users_title">WazzApp: Users</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="login">Login</string>
+    <string name="or_login">or Login</string>
+    <string name="or_sign_up">or Sign Up</string>
+    <string name="logout">Logout</string>
+    <string name="send">Send</string>
+</resources>
