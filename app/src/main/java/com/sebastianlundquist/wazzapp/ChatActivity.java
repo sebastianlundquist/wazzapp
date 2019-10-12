@@ -37,6 +37,7 @@ public class ChatActivity extends AppCompatActivity {
 	ParseQuery<ParseObject> query;
 	Date lastUpdated;
 	CountDownTimer timer;
+	Boolean isOnStart;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -48,16 +49,7 @@ public class ChatActivity extends AppCompatActivity {
 		messageEditText = findViewById(R.id.messageEditText);
 		chatListView = findViewById(R.id.chatListView);
 		lastUpdated = new Date(0);
-		timer = new CountDownTimer(3100, 1000) {
-			@Override
-			public void onTick(long l) { }
-
-			@Override
-			public void onFinish() {
-				findNewMessages();
-				timer.start();
-			}
-		}.start();
+		isOnStart = true;
 
 		simpleAdapter = new SimpleAdapter(ChatActivity.this, messageData, android.R.layout.simple_list_item_2, new String[] {"message", "sender"}, new int[] { android.R.id.text1, android.R.id.text2 });
 		chatListView.setAdapter(simpleAdapter);
@@ -76,7 +68,18 @@ public class ChatActivity extends AppCompatActivity {
 		query.whereGreaterThan("createdAt", lastUpdated);
 		query.setLimit(10);
 		messageData.clear();
-		findNewMessages();
+		findNewMessages(isOnStart);
+		isOnStart = false;
+		timer = new CountDownTimer(3100, 1000) {
+			@Override
+			public void onTick(long l) { }
+
+			@Override
+			public void onFinish() {
+				findNewMessages(isOnStart);
+				timer.start();
+			}
+		}.start();
 	}
 
 	@Override
@@ -103,9 +106,7 @@ public class ChatActivity extends AppCompatActivity {
 		}
 	}
 
-	public void findNewMessages() {
-		final DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-		Log.i("Info", dateFormat.format(lastUpdated));
+	public void findNewMessages(final Boolean isOnStart) {
 		query.whereGreaterThan("createdAt", lastUpdated);
 		lastUpdated = new Date();
 		query.findInBackground(new FindCallback<ParseObject>() {
@@ -115,10 +116,12 @@ public class ChatActivity extends AppCompatActivity {
 					Collections.reverse(objects);
 					if (objects.size() > 0) {
 						for (ParseObject message : objects) {
-							Map<String, String> messageInfo = new HashMap<>();
-							messageInfo.put("message", message.getString("message"));
-							messageInfo.put("sender", message.getString("sender"));
-							messageData.add(messageInfo);
+							if (!message.getString("sender").equals(ParseUser.getCurrentUser().getUsername()) || isOnStart) {
+								Map<String, String> messageInfo = new HashMap<>();
+								messageInfo.put("message", message.getString("message"));
+								messageInfo.put("sender", message.getString("sender"));
+								messageData.add(messageInfo);
+							}
 						}
 						simpleAdapter.notifyDataSetChanged();
 					}
